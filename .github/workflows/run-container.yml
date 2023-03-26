@@ -14,5 +14,5 @@ jobs:
       run: docker build . -t s3fuse-test --build-arg BUCKET_NAME=toptal-screening-process-mockup
     
     - name: Run Docker container
-      run: docker run -t -e ACCESS_KEY_ID=${secrets.ACCESS_KEY_ID} -e SECRET_ACCESS_KEY=${secrets.SECRET_ACCESS_KEY} --privileged s3fuse-test
+      run: docker run -t -e ACCESS_KEY_ID=${{secrets.ACCESS_KEY_ID}} -e SECRET_ACCESS_KEY=${{secrets.SECRET_ACCESS_KEY}} --privileged s3fuse-test
       
