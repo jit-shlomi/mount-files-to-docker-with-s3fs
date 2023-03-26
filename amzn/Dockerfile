@@ -2,7 +2,7 @@
 # ENVs Image
 ################
 
-FROM python:3.8-slim as envs
+FROM public.ecr.aws/amazonlinux/amazonlinux:2 as envs
 
 # Set arguments to be used throughout the image
 ARG OPERATOR_HOME="/home/op"
@@ -24,18 +24,33 @@ ENV OPERATOR_UID ${OPERATOR_UID}
 ENV BUCKET_NAME ${BUCKET_NAME}
 ENV S3_ENDPOINT ${S3_ENDPOINT}
 
-# Add user for code to be run as (we don't want to be using root)
-RUN useradd -ms /bin/bash -d ${OPERATOR_HOME} --uid ${OPERATOR_UID} ${OPERATOR_USER}
 
 ################
 # Dist Image
 ################
 FROM envs as dist
 
+RUN yum update -y && yum install -y amazon-linux-extras
+RUN amazon-linux-extras enable python3.8
+RUN yum install -y shadow-utils python-markupsafe python38 python3-wheel pip git gcc gcc-c++ kernel-devel zlib zlib-devel openssh openssh-clients make python38-devel
+
+# Add user for code to be run as (we don't want to be using root)
+RUN useradd -ms /bin/sh -d ${OPERATOR_HOME} --uid ${OPERATOR_UID} ${OPERATOR_USER}
+
 # install s3fs
-RUN set -ex && \
-    apt-get update && \
-    apt install s3fs -y
+# install s3fs
+RUN yum install -y gcc-c++ fuse fuse-devel automake autoconf git libcurl-devel libxml2-devel openssl-devel
+
+
+# RUN apk del .build-dependencies
+
+RUN git clone https://github.com/s3fs-fuse/s3fs-fuse.git && \
+    cd s3fs-fuse \
+    git checkout tags/${S3FS_VERSION} && \
+    ./autogen.sh && \
+    ./configure --prefix=/usr && \
+    make && \
+    make install
 
 # setup s3fs configs
 RUN echo "s3fs#${BUCKET_NAME} ${OPERATOR_HOME}/s3_bucket fuse _netdev,allow_other,nonempty,umask=000,uid=${OPERATOR_UID},gid=${OPERATOR_UID},passwd_file=${OPERATOR_HOME}/.s3fs-creds,use_cache=/tmp,url=${S3_ENDPOINT} 0 0" >> /etc/fstab
@@ -46,13 +61,13 @@ USER ${OPERATOR_USER}
 WORKDIR ${OPERATOR_HOME}
 COPY main.py .
 
-RUN printf '#!/usr/bin/env bash  \n\
+RUN printf '#!/usr/bin/env sh  \n\
 echo ${ACCESS_KEY_ID}:${SECRET_ACCESS_KEY} > ${OPERATOR_HOME}/.passwd-s3fs \n\
 chmod 400 ${OPERATOR_HOME}/.passwd-s3fs \n\
 mkdir ${OPERATOR_HOME}/s3_bucket \n\
 s3fs ${BUCKET_NAME} ${OPERATOR_HOME}/s3_bucket \n\
 exec python ${OPERATOR_HOME}/main.py \
-# exec /bin/bash \
+# exec /bin/sh \
 ' >> ${OPERATOR_HOME}/entrypoint.sh
 
 RUN chmod 700 ${OPERATOR_HOME}/entrypoint.sh
