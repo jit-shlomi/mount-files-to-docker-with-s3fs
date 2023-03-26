@@ -1,10 +1,8 @@
 ################
-# Envs Image
-# Image containing all base environment requirements
+# ENVs Image
 ################
 
 FROM python:3.8-slim as envs
-# LABEL maintainer="Maxcotec <maxcotec.com/learning>"
 
 # Set arguments to be used throughout the image
 ARG OPERATOR_HOME="/home/op"
@@ -14,11 +12,6 @@ ARG OPERATOR_USER="op"
 ARG OPERATOR_UID="50000"
 
 # Attach Labels to the image to help identify the image in the future
-LABEL com.maxcotec.docker=true
-LABEL com.maxcotec.docker.distro="debian"
-LABEL com.maxcotec.docker.module="s3fs-test"
-# LABEL com.maxcotec.docker.component="maxcotec-s3fs-test"
-LABEL com.maxcotec.docker.uid="${OPERATOR_UID}"
 
 # Set arguments for access s3 bucket to mount using s3fs
 ARG BUCKET_NAME

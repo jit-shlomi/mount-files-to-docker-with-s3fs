@@ -4,14 +4,16 @@ on:
     branches: [ main ]
       
 jobs:
-  build-and-run-container:
+  run-debian-container:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-      
+
     - name: build image
-      run: docker build . -t s3fuse-test --build-arg BUCKET_NAME=toptal-screening-process-mockup
+      run: |
+        cd debian
+        docker build . -t s3fuse-test --build-arg BUCKET_NAME=${{secrets.BUCKET_NAME}}
     
     - name: Run Docker container
       run: docker run -t -e ACCESS_KEY_ID=${{secrets.ACCESS_KEY_ID}} -e SECRET_ACCESS_KEY=${{secrets.SECRET_ACCESS_KEY}} --privileged s3fuse-test
