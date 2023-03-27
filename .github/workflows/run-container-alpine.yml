@@ -1,4 +1,4 @@
-name: Run Mount S3 files to container
+name: Run alpine
 on:
   push:
     branches: [ main ]

@@ -1,4 +1,4 @@
-name: Run Mount S3 files to container
+name: Run ubuntu
 on:
   push:
     branches: [ main ]
