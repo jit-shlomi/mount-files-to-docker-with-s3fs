@@ -24,4 +24,5 @@ I use 3 environment variables, all stored in github secrets:
 * AWS_SECRET_ACCESS_KEY
 * BUCKET_NAME
 
+
 also supplied a python script that list the files in a local directory. This directory contains the mounted files from S3.
